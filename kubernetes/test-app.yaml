@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: scratch-space-claim
+spec:
+  volumeMode: Filesystem
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 120Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-app
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: test-app
+    spec:
+      securityContext:
+        fsGroup: 185
+      restartPolicy: Always
+      volumes:
+        - name: scratch-space
+          persistentVolumeClaim:
+            claimName: scratch-space-claim
+      containers:
+        - name: test-app
+          image: alpine:latest
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              echo hello
+              # wait indefinitely else container will stop when the command ends
+              tail -f -s 10 /dev/null
+          volumeMounts:
+            - mountPath: /tmp/scratch
+              name: scratch-space
+          ports:
+            # this is just for testing, app image above does not use this port at all
+            - name: test-port
+              containerPort: 4000
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-app-service
+spec:
+  type: ClusterIP
+  ports:
+    - name: test-port
+      port: 4000
+      protocol: TCP
+      targetPort: test-port
+  selector:
+    app: test-app
