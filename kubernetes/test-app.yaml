@@ -9,7 +9,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi
+      storage: 10Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -52,6 +52,11 @@ spec:
             - name: test-port
               containerPort: 4000
               protocol: TCP
+      volumes:
+      - name: scratch-volume
+        hostPath:
+          path: /tmp/scratch-test-app
+          type: FileOrCreate
 ---
 apiVersion: v1
 kind: Service
