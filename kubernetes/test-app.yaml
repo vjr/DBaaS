@@ -34,6 +34,9 @@ spec:
         - name: scratch-space
           persistentVolumeClaim:
             claimName: scratch-space-claim
+          hostPath:
+            path: /tmp/scratch-test-app
+            type: FileOrCreate
       containers:
         - name: test-app
           image: alpine:latest
@@ -52,11 +55,6 @@ spec:
             - name: test-port
               containerPort: 4000
               protocol: TCP
-      volumes:
-      - name: scratch-volume
-        hostPath:
-          path: /tmp/scratch-test-app
-          type: FileOrCreate
 ---
 apiVersion: v1
 kind: Service
