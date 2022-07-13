@@ -6,7 +6,7 @@ spec:
   volumeMode: Filesystem
   storageClassName: standard
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   resources:
     requests:
       storage: 10Gi
@@ -34,9 +34,9 @@ spec:
         - name: scratch-space
           persistentVolumeClaim:
             claimName: scratch-space-claim
-          hostPath:
-            path: /tmp/scratch-test-app
-            type: FileOrCreate
+              #hostPath:
+              #path: /tmp/scratch-test-app
+              #type: FileOrCreate
       containers:
         - name: test-app
           image: alpine:latest
