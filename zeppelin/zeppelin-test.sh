@@ -50,12 +50,17 @@ do
 done
 
 if [ retry_count -eq 0 && zep_code -ne 200 ]
+then
   echo "VJR: Setting error code for para $2 note $1"
   result_code=1
 fi
 ) &
 
 }
+
+echo "VJR: Running paras..."
+
+try_run_paragraph note1 para1
 
 echo "VJR: Before final wait"
 
@@ -64,6 +69,7 @@ wait
 echo "VJR: After final wait"
 
 if [ result_code -ne 0 ]
+then
   echo "VJR: PHAIL!"
   exit 1
 fi
