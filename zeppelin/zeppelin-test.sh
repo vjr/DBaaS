@@ -1,8 +1,8 @@
 #!/bin/sh
 
-echo "VJR: Starting zeppelin..."
+echo "VJR: Starting zeppelin from: [$ZEPPELIN_HOME]"
 
-("$ZEPPELIN_HOME/bin/zeppelin-daemon.sh start") &
+("$ZEPPELIN_HOME"/bin/zeppelin-daemon.sh start) &
 
 echo "VJR: Waiting for subshell of: Starting zeppelin..."
 
@@ -12,7 +12,7 @@ echo "VJR: Done waiting for subshell of: Starting zeppelin..."
 
 echo "VJR: Sleeping..."
 
-sleep 2
+sleep 5
 
 echo "VJR: Done sleeping."
 
