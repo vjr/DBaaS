@@ -44,7 +44,7 @@ do
   echo "VJR: Done sleep $sleep_time seconds before retry para $2 note $1"
   ((sleep_time*=2))
   echo "VJR: Before retry para $2 note $1"
-  run_paragraph {{ $1 }} {{ $2 }}
+  run_paragraph $1 $2
   echo "VJR: After retry para $2 note $1"
 done
 
