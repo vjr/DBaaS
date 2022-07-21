@@ -32,6 +32,7 @@ try_run_paragraph()
 retry_count=5
 sleep_time=1
 zep_code=0
+result_code=0
 
 echo "VJR: Try run paragraph $2 for notebook $1"
 run_paragraph $1 $2
@@ -41,7 +42,7 @@ while [ "$zep_code" != "200" ] && [ $retry_count -gt 0 ];
 do
   ((retry_count--))
   echo "VJR: Sleep $sleep_time seconds before retry para $2 note $1"
-  sleep sleep_time
+  sleep $sleep_time
   echo "VJR: Done sleep $sleep_time seconds before retry para $2 note $1"
   ((sleep_time*=2))
   echo "VJR: Before retry para $2 note $1"
@@ -65,7 +66,7 @@ echo "VJR: Before final wait"
 
 wait
 
-echo "VJR: After final wait"
+echo "VJR: After final wait, result_code=$result_code"
 
 if [ $result_code -ne 0 ]; then
   echo "VJR: PHAIL!"
