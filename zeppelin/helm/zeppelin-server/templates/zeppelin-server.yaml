@@ -186,12 +186,14 @@ spec:
             declare -a paraIDs
             declare -a childPIDs
 
-            {{ range $notebookId, $paragraphId := .Values.zeppelin.autorunParagraphIds }}
+            {{ range $index, $map := .Values.zeppelin.autorunParagraphIds }}
+            {{ range $notebookId, $paragraphId := $map }}
 
             paraIDs+=("{{ $paragraphId }} in notebook {{ $notebookId }}")
             (try_run_paragraph "{{ $notebookId }}" "{{ $paragraphId }}") &
             childPIDs+=($!)
 
+            {{ end }}
             {{ end }}
 
             for i in "${!childPIDs[@]}"; do
