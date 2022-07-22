@@ -1,0 +1,25 @@
+# Default values for serverless-analytics.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Overrides for name and fullname
+#nameOverride: ""
+#fullnameOverride: ""
+
+# Spark configuration most of which goes into spark-defaults.conf
+spark:
+  version: 3.3.0
+  # use linux/amd64 digest for M1 mac not linux/arm64 which doesn't work with rosetta
+  digest: sha256:5fd17e43d667a326fb803c33a6496a31fb0474dbe84676cc1eb585c72f10e9ec
+
+zeppelin:
+  version: 0.10.1
+  # use linux/amd64 digest for M1 mac not linux/arm64 which doesn't work with rosetta
+  digest: sha256:9c1b5ddd6225ad45cedc327a853f6f13e45797ff419260d20bb9c14f5cbe3a87
+  nginxVersion: 1.23.1
+  nginxDigest: sha256:295c7be079025306c4f1d65997fcf7adb411c88f139ad1d34b537164aa060369
+  dnsmasqImage: janeczku/go-dnsmasq:release-1.0.7
+  dnsmasqImageDigest: janeczku/go-dnsmasq@sha256:56119a82f973247eda467303dabe1c04034b6ee75fb2c2534f516b3bfdf14123
+  service:
+    port: 8080
+  autorunParagraphIds: { 2EYUV26VR: 20180530-101118_380906698 }
