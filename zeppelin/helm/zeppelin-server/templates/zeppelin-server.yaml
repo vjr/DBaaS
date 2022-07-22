@@ -123,7 +123,86 @@ spec:
       - name: zeppelin-server
         #image: apache/zeppelin:{{ .Values.zeppelin.version }}
         image: apache/zeppelin@{{ .Values.zeppelin.digest }}
-        command: ["sh", "-c", "$(ZEPPELIN_HOME)/bin/zeppelin.sh"]
+        #command: ["sh", "-c", "$(ZEPPELIN_HOME)/bin/zeppelin.sh"]
+        command: [ "/bin/bash", "-ec" ]
+        args:
+          - |
+            "$(ZEPPELIN_HOME)/bin/zeppelin.sh" &
+            zeppelinPID="$!"
+
+            # wait for zeppelin to be available
+            sleep 1
+
+            # usage: waitFor <retries> <initial sleep secs> <cmd to check>
+            function waitFor() {
+              retryCount="$1"
+              sleepTime="$2"
+              cmd="$3"
+
+              while [ $retryCount -gt 0 ] && ! eval $cmd; do
+                echo "Waiting $sleepTime secs for: $cmd"
+                sleep $sleepTime
+                if [ $sleepTime -lt 8 ]; then
+                  ((sleepTime*=2))
+                fi
+                ((retryCount--))
+              done
+              if eval $cmd; then
+                echo "Wait successful for: $cmd"
+              else
+                echo "Wait failed for: $cmd"
+                exit $?
+              fi
+            }
+
+            waitFor 5 1 "curl -s -o /dev/null -X GET \"http://localhost:8080/api/interpreter/setting\""
+
+            run_paragraph()
+            {
+              zep_code=$(curl -o /dev/null -s -w %{http_code} -X POST http://localhost:8080/api/notebook/run/$1/$2)
+            }
+
+            try_run_paragraph()
+            {
+            (
+            retry_count=5
+            sleep_time=1
+            zep_code=0
+
+            run_paragraph $1 $2
+
+            while [ "$zep_code" != "200" ] && [ $retry_count -gt 0 ];
+            do
+              ((retry_count--))
+              sleep $sleep_time
+              ((sleep_time*=2))
+              run_paragraph $1 $2
+            done
+
+            if [ $retry_count -eq 0 ] && [ "$zep_code" != "200" ]; then
+              exit 1
+            fi
+            )
+            }
+
+            declare -a childPIDs
+
+            {{ range $notebookId, $paragraphId := .Values.zeppelin.autorunParagraphIds }}
+
+            (try_run_paragraph {{ $notebookId }} {{ $paragraphId }}) &
+            childPIDs+=($!)
+
+            {{ end }}
+
+            # wait for zeppelin to end
+            wait "$zeppelinPID"
+
+            for i in "${!childPIDs[@]}"; do
+              if ! wait "${childPIDs[i]}"; then
+                #echo "VJR: PHAIL!!!"
+                #exit 1
+              fi
+            done
         lifecycle:
           preStop:
             exec:

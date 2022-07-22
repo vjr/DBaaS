@@ -22,4 +22,4 @@ zeppelin:
   dnsmasqImageDigest: janeczku/go-dnsmasq@sha256:56119a82f973247eda467303dabe1c04034b6ee75fb2c2534f516b3bfdf14123
   service:
     port: 8080
-  autorunParagraphIds: {}
+  autorunParagraphIds: { 2EYUV26VR: 20180530-101118_380906698 }
