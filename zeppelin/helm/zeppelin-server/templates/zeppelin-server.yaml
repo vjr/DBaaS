@@ -164,23 +164,23 @@ spec:
 
             try_run_paragraph()
             {
-            retry_count=5
-            sleep_time=1
-            zep_code=0
+              retry_count=5
+              sleep_time=1
+              zep_code=0
 
-            run_paragraph "$1" "$2"
-
-            while [ "$zep_code" != "200" ] && [ $retry_count -gt 0 ];
-            do
-              ((retry_count--))
-              sleep $sleep_time
-              ((sleep_time*=2))
               run_paragraph "$1" "$2"
-            done
 
-            if [ $retry_count -eq 0 ] && [ "$zep_code" != "200" ]; then
-              exit 1
-            fi
+              while [ "$zep_code" != "200" ] && [ $retry_count -gt 0 ];
+              do
+                ((retry_count--))
+                sleep $sleep_time
+                ((sleep_time*=2))
+                run_paragraph "$1" "$2"
+              done
+
+              if [ $retry_count -eq 0 ] && [ "$zep_code" != "200" ]; then
+                exit 1
+              fi
             }
 
             declare -a paraIDs
