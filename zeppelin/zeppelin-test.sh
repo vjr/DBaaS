@@ -2,7 +2,7 @@
 
 echo "VJR: Starting zeppelin from: [$ZEPPELIN_HOME]"
 
-("$ZEPPELIN_HOME"/bin/zeppelin-daemon.sh start) &
+("$ZEPPELIN_HOME"/bin/zeppelin-daemon.sh status) &
 zeppelinPID="$!"
 
 echo "VJR: Waiting for subshell of: Starting zeppelin..."
@@ -80,9 +80,7 @@ echo "VJR: After final wait, result count=${!childPIDs[@]}"
 
 for i in "${!childPIDs[@]}"; do
   echo "VJR: Child PID $i: ${childPIDs[i]}"
-  if wait "${childPIDs[i]}"; then
-    echo "VJR: Successfully run paragraph $i"
-  else
+  if ! wait "${childPIDs[i]}"; then
     echo "VJR: PHAIL!!!"
     #exit $?
     echo $?
