@@ -30,13 +30,16 @@ data:
   #SERVICE_DOMAIN: local.zeppelin-project.org:8080
   SERVICE_DOMAIN: localhost:8080
   #ZEPPELIN_K8S_SPARK_CONTAINER_IMAGE: spark:2.4.5
-  ZEPPELIN_K8S_SPARK_CONTAINER_IMAGE: apache/spark:v{{ .Values.spark.version }}
-  ZEPPELIN_K8S_CONTAINER_IMAGE: apache/zeppelin:{{ .Values.zeppelin.version }}
+  #ZEPPELIN_K8S_SPARK_CONTAINER_IMAGE: apache/spark:v{{ .Values.spark.version }}
+  ZEPPELIN_K8S_SPARK_CONTAINER_IMAGE: apache/spark@{{ .Values.spark.digest }}
+  #ZEPPELIN_K8S_CONTAINER_IMAGE: apache/zeppelin:{{ .Values.zeppelin.version }}
+  ZEPPELIN_K8S_CONTAINER_IMAGE: apache/zeppelin@{{ .Values.zeppelin.digest }}
   ZEPPELIN_HOME: /opt/zeppelin
+  ZEPPELIN_LOG_DIR: /opt/zeppelin/logs
   ZEPPELIN_SERVER_RPC_PORTRANGE: 12320:12320
   # default value of 'master' property for spark interpreter.
-  #SPARK_MASTER: k8s://https://kubernetes.default.svc
-  SPARK_MASTER: k8s://https://kubernetes.default.svc:443/
+  SPARK_MASTER: k8s://http://kubernetes.default.svc
+  #SPARK_MASTER: k8s://https://kubernetes.default.svc:443/
   # default value of 'SPARK_HOME' property for spark interpreter.
   SPARK_HOME: /spark
 ---
@@ -118,7 +121,8 @@ spec:
             path: nginx.conf
       containers:
       - name: zeppelin-server
-        image: apache/zeppelin:{{ .Values.zeppelin.version }}
+        #image: apache/zeppelin:{{ .Values.zeppelin.version }}
+        image: apache/zeppelin@{{ .Values.zeppelin.digest }}
         command: ["sh", "-c", "$(ZEPPELIN_HOME)/bin/zeppelin.sh"]
         lifecycle:
           preStop:
@@ -153,38 +157,42 @@ spec:
       #    mountPath: /zeppelin/conf
       #  - name: zeppelin-server-custom-k8s          # configure this to mount customized Kubernetes spec for interpreter
       #    mountPath: /zeppelin/k8s
-      - name: zeppelin-server-gateway
-        image: nginx:{{ .Values.zeppelin.nginxVersion }}
-        command: ["/bin/sh", "-c"]
-        env:
-        - name: SERVICE_DOMAIN
-          valueFrom:
-            configMapKeyRef:
-              name: zeppelin-server-conf-map
-              key: SERVICE_DOMAIN
-        args:
-          - cp -f /tmp/conf/nginx.conf /etc/nginx/nginx.conf;
-            sed -i -e "s/SERVICE_DOMAIN/$SERVICE_DOMAIN/g" /etc/nginx/nginx.conf;
-            sed -i -e "s/NAMESPACE/$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)/g" /etc/nginx/nginx.conf;
-            cat /etc/nginx/nginx.conf;
-            /usr/sbin/nginx
-        volumeMounts:
-          - name: nginx-conf
-            mountPath: /tmp/conf
-        lifecycle:
-          preStop:
-            exec:
-              # SIGTERM triggers a quick exit; gracefully terminate instead
-              command: ["/usr/sbin/nginx", "-s", "quit"]
-      - name: dnsmasq  # nginx requires dns resolver for dynamic dns resolution
-        image: {{ .Values.zeppelin.dnsmasqImage }}
-        args:
-          - --listen
-          - "127.0.0.1:53"
-          - --default-resolver
-          - --append-search-domains
-          - --hostsfile=/etc/hosts
-          - --verbose
+      # - name: zeppelin-server-gateway
+      #   image: nginx:{{ .Values.zeppelin.nginxVersion }}
+      #   platform: linux/amd64
+      #   #image: nginx@{{ .Values.zeppelin.nginxDigest }}
+      #   command: ["/bin/sh", "-c"]
+      #   env:
+      #   - name: SERVICE_DOMAIN
+      #     valueFrom:
+      #       configMapKeyRef:
+      #         name: zeppelin-server-conf-map
+      #         key: SERVICE_DOMAIN
+      #   args:
+      #     - cp -f /tmp/conf/nginx.conf /etc/nginx/nginx.conf;
+      #       sed -i -e "s/SERVICE_DOMAIN/$SERVICE_DOMAIN/g" /etc/nginx/nginx.conf;
+      #       sed -i -e "s/NAMESPACE/$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)/g" /etc/nginx/nginx.conf;
+      #       cat /etc/nginx/nginx.conf;
+      #       /usr/sbin/nginx
+      #   volumeMounts:
+      #     - name: nginx-conf
+      #       mountPath: /tmp/conf
+      #   lifecycle:
+      #     preStop:
+      #       exec:
+      #         # SIGTERM triggers a quick exit; gracefully terminate instead
+      #         command: ["/usr/sbin/nginx", "-s", "quit"]
+      # - name: dnsmasq  # nginx requires dns resolver for dynamic dns resolution
+      #   image: {{ .Values.zeppelin.dnsmasqImage }}
+      #   platform: linux/amd64
+      #   #image: {{ .Values.zeppelin.dnsmasqImageDigest }}
+      #   args:
+      #     - --listen
+      #     - "127.0.0.1:53"
+      #     - --default-resolver
+      #     - --append-search-domains
+      #     - --hostsfile=/etc/hosts
+      #     - --verbose
 ---
 kind: Service
 apiVersion: v1
