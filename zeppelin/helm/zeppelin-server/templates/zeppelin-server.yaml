@@ -240,42 +240,40 @@ spec:
       #    mountPath: /zeppelin/conf
       #  - name: zeppelin-server-custom-k8s          # configure this to mount customized Kubernetes spec for interpreter
       #    mountPath: /zeppelin/k8s
-      # - name: zeppelin-server-gateway
-      #   image: nginx:{{ .Values.zeppelin.nginxVersion }}
-      #   platform: linux/amd64
-      #   #image: nginx@{{ .Values.zeppelin.nginxDigest }}
-      #   command: ["/bin/sh", "-c"]
-      #   env:
-      #   - name: SERVICE_DOMAIN
-      #     valueFrom:
-      #       configMapKeyRef:
-      #         name: zeppelin-server-conf-map
-      #         key: SERVICE_DOMAIN
-      #   args:
-      #     - cp -f /tmp/conf/nginx.conf /etc/nginx/nginx.conf;
-      #       sed -i -e "s/SERVICE_DOMAIN/$SERVICE_DOMAIN/g" /etc/nginx/nginx.conf;
-      #       sed -i -e "s/NAMESPACE/$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)/g" /etc/nginx/nginx.conf;
-      #       cat /etc/nginx/nginx.conf;
-      #       /usr/sbin/nginx
-      #   volumeMounts:
-      #     - name: nginx-conf
-      #       mountPath: /tmp/conf
-      #   lifecycle:
-      #     preStop:
-      #       exec:
-      #         # SIGTERM triggers a quick exit; gracefully terminate instead
-      #         command: ["/usr/sbin/nginx", "-s", "quit"]
-      # - name: dnsmasq  # nginx requires dns resolver for dynamic dns resolution
-      #   image: {{ .Values.zeppelin.dnsmasqImage }}
-      #   platform: linux/amd64
-      #   #image: {{ .Values.zeppelin.dnsmasqImageDigest }}
-      #   args:
-      #     - --listen
-      #     - "127.0.0.1:53"
-      #     - --default-resolver
-      #     - --append-search-domains
-      #     - --hostsfile=/etc/hosts
-      #     - --verbose
+      - name: zeppelin-server-gateway
+        image: nginx:{{ .Values.zeppelin.nginxVersion }}
+        #image: nginx@{{ .Values.zeppelin.nginxDigest }}
+        command: ["/bin/sh", "-c"]
+        env:
+        - name: SERVICE_DOMAIN
+          valueFrom:
+            configMapKeyRef:
+              name: zeppelin-server-conf-map
+              key: SERVICE_DOMAIN
+        args:
+          - cp -f /tmp/conf/nginx.conf /etc/nginx/nginx.conf;
+            sed -i -e "s/SERVICE_DOMAIN/$SERVICE_DOMAIN/g" /etc/nginx/nginx.conf;
+            sed -i -e "s/NAMESPACE/$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)/g" /etc/nginx/nginx.conf;
+            cat /etc/nginx/nginx.conf;
+            /usr/sbin/nginx
+        volumeMounts:
+          - name: nginx-conf
+            mountPath: /tmp/conf
+        lifecycle:
+          preStop:
+            exec:
+              # SIGTERM triggers a quick exit; gracefully terminate instead
+              command: ["/usr/sbin/nginx", "-s", "quit"]
+      - name: dnsmasq  # nginx requires dns resolver for dynamic dns resolution
+        image: {{ .Values.zeppelin.dnsmasqImage }}
+        #image: {{ .Values.zeppelin.dnsmasqImageDigest }}
+        args:
+          - --listen
+          - "127.0.0.1:53"
+          - --default-resolver
+          - --append-search-domains
+          - --hostsfile=/etc/hosts
+          - --verbose
 ---
 kind: Service
 apiVersion: v1
